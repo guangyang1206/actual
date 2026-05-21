@@ -332,7 +332,7 @@ export function ImportTransactionsModal({
   );
 
   const parse = useCallback(
-    async (filename: string, options: ParseFileOptions) => {
+    async (filename: string, options: ParseFileOptions, preserveMappings = false) => {
       setLoadingState('parsing');
 
       const filetype = getFileType(filename);
@@ -438,7 +438,7 @@ export function ImportTransactionsModal({
       ),
     });
 
-    void parse(originalFileName, parseOptions);
+    void parse(originalFileName, parseOptions, true);
   }, [
     originalFileName,
     delimiter,
