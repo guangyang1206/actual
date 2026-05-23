@@ -1035,8 +1035,9 @@ export async function prefetchBalanceOfForTransaction(
   for (const literal of literals) {
     const accountId = resolveAccountIdForBalanceOf(literal, accountsMap);
     if (accountId) {
+      // Use accountId as key (not literal) so balanceOf() can look it up
       map.set(
-        literal,
+        accountId,
         await getRunningBalanceBeforeTransaction(trans, accountId),
       );
     } else {
