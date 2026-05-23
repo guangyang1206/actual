@@ -1040,7 +1040,7 @@ export async function prefetchBalanceOfForTransaction(
         await getRunningBalanceBeforeTransaction(trans, accountId),
       );
     } else {
-      map.set(literal, 0);
+      map.set(accountId, 0);
     }
   }
   return map;
