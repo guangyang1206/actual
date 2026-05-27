@@ -880,7 +880,7 @@ handlers['api/schedule-create'] = withMutation(async function (
   checkFileOpen();
   const internalSchedule = scheduleModel.fromExternal({ ...schedule, id: '' });
   const partialSchedule = {
-    name: internalSchedule.name,
+    name: internalSchedule.name.trim(),
     posts_transaction: internalSchedule.posts_transaction,
   };
   return handlers['schedule/create']({
@@ -914,7 +914,7 @@ handlers['api/schedule-update'] = withMutation(async function ({
 
     switch (typedKey) {
       case 'name': {
-        const newName = String(value);
+        const newName = String(value).trim();
         const { data: existing } = await aqlQuery(
           q('schedules').filter({ name: newName }).select('*'),
         );
