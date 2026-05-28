@@ -1396,11 +1396,12 @@ const Transaction = memo(function Transaction({
             isNonModal
             style={{
               width: 'max-content',
-              maxWidth: 'none',
+              maxWidth: 'min(500px, calc(100vw - 40px))',
               minWidth: 375,
               padding: 5,
+              overflowWrap: 'break-word',
             }}
-            shouldFlip={false}
+            shouldFlip={{ right: true, left: true, top: true, bottom: true }}
             placement="bottom end"
             UNSTABLE_portalContainer={listContainerRef.current}
           >
