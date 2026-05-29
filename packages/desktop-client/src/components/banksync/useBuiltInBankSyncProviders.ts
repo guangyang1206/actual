@@ -56,6 +56,7 @@ export type BuiltInBankSyncProviderState = {
   displayName: string;
   description: string;
   isConfigured: boolean;
+  isCloudflareBlocked: boolean;
   canConfigure: boolean;
   isLoading?: boolean;
   onConfigure: ProviderAction;
@@ -113,7 +114,7 @@ export function useBuiltInBankSyncProviders({
 
   const enableBankingEnabled = useFeatureFlag('enableBanking');
   const { configuredGoCardless } = useGoCardlessStatus();
-  const { configuredSimpleFin } = useSimpleFinStatus();
+  const { configuredSimpleFin, cloudflareBlocked } = useSimpleFinStatus();
   const { configuredPluggyAi } = usePluggyAiStatus();
   const { configuredEnableBanking, isLoading: isEnableBankingLoading } =
     useEnableBankingStatus(enableBankingEnabled);
@@ -493,10 +494,15 @@ export function useBuiltInBankSyncProviders({
           return {
             id: providerId,
             displayName: 'SimpleFIN',
-            description: t(
-              'Link a North American bank account to automatically download transactions.',
-            ),
+            description: cloudflareBlocked
+              ? t(
+                  'SimpleFIN is temporarily blocked by Cloudflare. Please try again later or reset your credentials.',
+                )
+              : t(
+                  'Link a North American bank account to automatically download transactions.',
+                ),
             isConfigured: configuredProviders.simpleFin,
+            isCloudflareBlocked: cloudflareBlocked,
             canConfigure: canConfigureProviders,
             isLoading: loadingSimpleFinAccounts,
             onConfigure: onSimpleFinInit,

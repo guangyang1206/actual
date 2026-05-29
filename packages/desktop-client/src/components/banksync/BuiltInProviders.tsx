@@ -122,6 +122,20 @@ export function BuiltInProviders({
                       <Trans>Not configured</Trans>
                     )}
                   </Text>
+                  {provider.isCloudflareBlocked && (
+                    <Text
+                      style={{
+                        color: theme.errorText,
+                        fontSize: 12,
+                        marginTop: 2,
+                      }}
+                    >
+                      <Trans>
+                        SimpleFIN is temporarily blocked by Cloudflare.
+                        Reset credentials or try again later.
+                      </Trans>
+                    </Text>
+                  )}
                 </View>
 
                 {provider.isConfigured && (

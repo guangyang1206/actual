@@ -20,11 +20,13 @@ app.post(
   handleError(async (req, res) => {
     const token = secretsService.get(SecretName.simplefin_token);
     const configured = token != null && token !== 'Forbidden';
+    const cloudflareBlocked = token === 'Forbidden';
 
     res.send({
       status: 'ok',
       data: {
         configured,
+        cloudflareBlocked,
       },
     });
   }),
@@ -41,10 +43,21 @@ app.post(
         if (token == null || token === 'Forbidden') {
           throw new Error('No token');
         } else {
-          accessKey = await getAccessKey(token);
-          secretsService.set(SecretName.simplefin_accessKey, accessKey);
-          if (accessKey == null || accessKey === 'Forbidden') {
-            throw new Error('No access key');
+          try {
+            accessKey = await getAccessKey(token);
+            secretsService.set(SecretName.simplefin_accessKey, accessKey);
+            if (accessKey == null || accessKey === 'Forbidden') {
+              throw new Error('No access key');
+            }
+          } catch (e) {
+            if (e.message === 'Forbidden') {
+              // Cloudflare block or auth failure — treat as invalid token
+              invalidToken(res);
+            } else {
+              // Network or other errors — server may be down
+              serverDown(e, res);
+            }
+            return;
           }
         }
       }
@@ -63,7 +76,11 @@ app.post(
         },
       });
     } catch (e) {
-      serverDown(e, res);
+      if (e.message === 'Forbidden') {
+        invalidToken(res);
+      } else {
+        serverDown(e, res);
+      }
       return;
     }
   }),

@@ -4,10 +4,16 @@ import { send } from '@actual-app/core/platform/client/connection';
 
 import { useSyncServerStatus } from './useSyncServerStatus';
 
+type SimpleFinStatusResult = {
+  configured: boolean;
+  cloudflareBlocked?: boolean;
+};
+
 export function useSimpleFinStatus() {
   const [configuredSimpleFin, setConfiguredSimpleFin] = useState<
     boolean | null
   >(null);
+  const [cloudflareBlocked, setCloudflareBlocked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const status = useSyncServerStatus();
 
@@ -18,6 +24,7 @@ export function useSimpleFinStatus() {
       const results = await send('simplefin-status');
 
       setConfiguredSimpleFin(results.configured || false);
+      setCloudflareBlocked(!!results.cloudflareBlocked);
       setIsLoading(false);
     }
 
@@ -28,6 +35,7 @@ export function useSimpleFinStatus() {
 
   return {
     configuredSimpleFin,
+    cloudflareBlocked,
     isLoading,
   };
 }
