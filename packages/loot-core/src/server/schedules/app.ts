@@ -589,6 +589,31 @@ async function advanceSchedulesService(syncSuccess) {
         await postTransactionForSchedule({ id: schedule.id });
 
         didPost = true;
+
+        // Advance next_date after posting so that if multiple periods
+        // were missed (e.g. user didn't open the app for weeks),
+        // the *next* missed date is also processed on this run.
+        // Without this, only the first missed transaction is ever
+        // posted per app launch (see #7996).
+        if (schedule._date?.frequency) {
+          try {
+            await setNextDate({ id: schedule.id });
+            // Re-fetch the schedule so the loop variable reflects the
+            // advanced date for the next iteration.
+            const updated = await aqlQuery(
+              q('schedules').filter({ id: schedule.id }).select('*'),
+            );
+            if (updated.data.length > 0) {
+              Object.assign(schedule, updated.data[0]);
+              schedule._date = parseDate(schedule.next_date);
+              // Re-check status with the new date so the while-loop
+              // approach can catch multiple missed periods.
+              status = getStatus(schedule, today);
+            }
+          } catch {
+            // schedule rule might be corrupted; skip advancing
+          }
+        }
       } else {
         failedToPost.push(schedule._payee);
       }
