@@ -8,8 +8,9 @@ import type {
   CategoryGroupEntity,
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
+import type { UncategorizedEntity } from '#components/reports/ReportOptions';
 
-import { ReportOptions } from '#components/reports/ReportOptions';
+import { ReportOptions, categoryLists } from '#components/reports/ReportOptions';
 
 type showActivityProps = {
   navigate: NavigateFunction;
@@ -24,6 +25,7 @@ type showActivityProps = {
   endDate?: string;
   field?: string;
   id?: string | string[]; // changed: supports array for oneOf
+  name?: string; // display name, used to detect transfer/uncategorized special categories
   interval?: string;
 };
 
@@ -40,6 +42,7 @@ export function showActivity({
   endDate,
   field,
   id,
+  name,
   interval = 'Day',
 }: showActivityProps) {
   const isOutFlow =
@@ -53,15 +56,40 @@ export function showActivity({
           'FromDate') as 'dayFromDate' | 'monthFromDate' | 'yearFromDate');
   const isDateOp = interval === 'Weekly' || type !== 'time';
 
+  // Detect if the clicked category is the synthetic "Transfers" entry.
+  // When groupBy='Category', the "Transfers" bar has id='' (empty string)
+  // because transferCategory.id is ''. We need to use a transfer filter instead.
+  let transferFilter: RuleConditionEntity | null = null;
+  if (
+    field === 'category' &&
+    (!id || id === '') &&
+    name
+  ) {
+    const [categoryList] = categoryLists(categories);
+    const transferEntry = categoryList.find(
+      (item: UncategorizedEntity) =>
+        item.uncategorized_id === 'transfer' &&
+        item.name === name,
+    );
+    if (transferEntry) {
+      transferFilter = {
+        field: 'transfer',
+        op: 'is',
+        value: true,
+        type: 'boolean',
+      } as unknown as RuleConditionEntity;
+    }
+  }
+
   const filterConditions = [
     ...filters,
-    id && {
+    transferFilter || (id && {
       // changed: use oneOf when id is an array, is when it's a string
       field,
       op: Array.isArray(id) ? 'oneOf' : 'is',
       value: id,
       type: 'id',
-    },
+    }),
     {
       field: 'date',
       op: isDateOp ? 'gte' : 'is',
