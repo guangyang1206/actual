@@ -424,7 +424,11 @@ export type IntegerAmount = number;
 const MAX_SAFE_NUMBER = 2 ** 51 - 1;
 const MIN_SAFE_NUMBER = -MAX_SAFE_NUMBER;
 
-export function safeNumber(value: number) {
+export function safeNumber(value: number | null | undefined) {
+  // Handle null/undefined by returning 0 (graceful fallback)
+  if (value == null) {
+    return 0;
+  }
   if (!Number.isInteger(value)) {
     throw new Error(
       'safeNumber: number is not an integer: ' + JSON.stringify(value),
