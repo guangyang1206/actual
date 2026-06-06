@@ -360,7 +360,7 @@ export function SelectLinkedAccountsModal({
   const defaultStartingSettings = useMemo<StartingBalanceInfo>(
     () => ({
       date: subDays(currentDay(), 89),
-      amount: 0,
+      amount: undefined,
     }),
     [],
   );

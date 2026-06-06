@@ -70,8 +70,9 @@ export function AmountInput({
   const [isFocused, setIsFocused] = useState(focused ?? false);
 
   const getDisplayValue = useCallback(
-    (value: number, isEditing: boolean) => {
-      const absoluteValue = Math.abs(value || 0);
+    (value: number | undefined, isEditing: boolean) => {
+      if (value == null) return '';
+      const absoluteValue = Math.abs(value);
       return isEditing
         ? format.forEdit(absoluteValue)
         : format(absoluteValue, 'financial');
@@ -102,6 +103,7 @@ export function AmountInput({
   }, [sign]);
 
   const getAmount = useCallback(() => {
+    if (value === '' || value == null) return undefined;
     const signedValued = symbol === '-' ? symbol + value : value;
     return format.fromEdit(signedValued, 0);
   }, [symbol, value, format]);
@@ -144,19 +146,21 @@ export function AmountInput({
     onChangeValue?.(newText);
   }
 
-  function fireUpdate(amount) {
+  function fireUpdate(amount: number | undefined) {
     onUpdate?.(amount);
 
     if (sign) {
       setSymbol(sign);
     } else {
-      if (amount > 0) {
+      if (amount == null) {
+        setSymbol(zeroSign);
+      } else if (amount > 0) {
         setSymbol('+');
       } else if (amount < 0) {
         setSymbol('-');
       }
     }
-    setValue(format(Math.abs(amount), 'financial'));
+    setValue(getDisplayValue(amount, false));
   }
 
   function onInputAmountBlur(e) {
